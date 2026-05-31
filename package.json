@@ -1,0 +1,61 @@
+{
+  "name": "md-vision",
+  "version": "0.1.0",
+  "description": "stdio MCP server to read and index markdown with images",
+  "keywords": [
+    "context-engineering",
+    "agentic-rag",
+    "mcp",
+    "agent-tools",
+    "md",
+    "markdown"
+  ],
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "./dist/server.js",
+  "bin": {
+    "md-vision": "./dist/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "fast-glob": "^3.3.3",
+    "file-type": "^21.3.4",
+    "mdast-util-to-string": "^4.0.0",
+    "mime-types": "^3.0.2",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "sharp": "^0.34.5",
+    "unified": "^11.0.5",
+    "unist-util-is": "^6.0.0",
+    "unist-util-visit": "^5.0.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^3.0.1",
+    "@types/node": "^22.15.0",
+    "nock": "^14.0.15",
+    "tmp-promise": "^3.0.3",
+    "tsup": "^8.5.1",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true,
+    "esbuild@0.25.12": true,
+    "sharp@0.34.5": true
+  }
+}
