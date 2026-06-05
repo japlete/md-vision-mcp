@@ -1,64 +1,52 @@
 # MD Vision MCP server
 
-This is a stdio MCP server that provides tools to read markdown files with images and obtain an index of a set of MD files. To be used in agentic RAG or general documentation workflows.
-
-## Stack
-
-- Runtime: Node.js 20+, TypeScript 5.8, ESM
-- Build: tsup (ESM bundle, Node 20 target)
-- MCP: `@modelcontextprotocol/sdk` v1 + zod v3 (tool input schemas)
-- Markdown AST: unified + remark-parse + remark-gfm + remark-frontmatter + remark-stringify
-- AST utilities: unist-util-visit, unist-util-is, mdast-util-to-string
-- Image handling: sharp (raster resize/format), `@resvg/resvg-js` (SVG → PNG)
-- HTTP: native fetch
-- MIME / sniffing: file-type v21 (magic bytes), mime-types (extension fallback)
-- Folder indexing: fast-glob
-- Testing: vitest + tmp-promise + nock (HTTP mocking)
-- Publishing: npm, GitHub Actions (repo private for now, public when published)
+stdio MCP server: read markdown with inlined images (`read_md_with_images`) and index headings across files or folders (`index_md`). For agentic RAG and documentation workflows.
 
 ## Status
 
-Repo structure only, no tools implemented yet. Local git only.
+Implemented. Entry: `src/server.ts` → `dist/server.js` (`md-vision` bin). Tests: `test/**/*.test.ts`.
+
+## Layout
+
+| Path | Role |
+|------|------|
+| `src/server.ts` | MCP bootstrap, tool registration, stdio transport |
+| `src/tools/` | Tool handlers and zod input schemas |
+| `src/markdown/` | remark AST: parse, sections, line ranges, index rows |
+| `src/images/` | Image load, MIME sniff, sharp/resvg → PNG |
+| `src/io/` | URI fetch, path/domain allowlists |
+| `src/mcp/result.ts` | MCP content / error helpers |
+
+User-facing install and examples: `README.md`. MCP authoring patterns: `.agents/skills/build-mcp-server/`.
+
+## Stack
+
+Node 20+, TypeScript, ESM (tsup). MCP SDK + zod. unified/remark (GFM, frontmatter). sharp, resvg, file-type, fast-glob. vitest, nock, tmp-promise.
 
 ## Rules
 
-- Breaking changes are allowed while the project is unpublished.
+- Breaking changes OK while unpublished.
 - Run `npm test` after code changes.
-- Don't write docs unless asked to.
-- Use .js extensions in relative imports. No CommonJS.
-- .npmrc enforces 14-day release age (security)
+- Use `.js` extensions in relative imports. No CommonJS.
+- stdio: never log to stdout; use `console.error` only.
+- `.npmrc` enforces 14-day release age for npm deps.
 
-## Tools
+## Tools (contract)
 
-### read_md_with_images
+**read_md_with_images** — `uri`, optional `section` (exact heading text, e.g. `## Intro`), optional `line_range` `[start, end]` (section wins when matched), optional `max_images` (default 10, max 50). Returns text + image blocks; frontmatter preserved via remark-stringify.
 
-Inputs:
-- uri (string): The local path or URL to the markdown file to read
-- section (string, optional): The section of the file to read. Example: '## Introduction'
-- line_range (array of integers, optional): The line range to read (inclusive). Example: [1, 10]. section argument takes precedence if section matches.
-- max_images (integer, optional): The maximum number of images to read. Default: 10.
+**index_md** — `uri` (file, folder, or URL). Per file: frontmatter + TSV (`heading`, `line_start`, `n_images`, `char_count`) in `<file path="..." lines=X chars=Y>`. Headings inside fenced code are skipped (AST, not regex).
 
-Outputs:
-- array of text and image blocks: The markdown content with referenced images injected as LLM-native image blocks. Original frontmatter is preserved.
+Images: markdown `![](...)` and HTML `<img src="...">`; resolve relative to doc base; MIME via file-type then mime-types; raster → sharp PNG, SVG → resvg PNG.
 
-### index_md
+## Access
 
-Inputs:
-- uri (string): The local path or URL to the markdown file or folder to index
+CLI: `--allow-path` and `--allow-domain` (both required, repeatable or `=value`). Server fails to start without at least one of each. `--allow-domain=all` allows any HTTP(S) host; `--allow-domain=none` disables URLs. Avoid bare `*` (shell glob).
 
-Outputs:
-- markdown (string): MD in 2 parts:
-  - Frontmatter is preserved if present.
-  - TSV code block containing a TSV table with columns: heading, line_start, n_images, char_count. One table per file, wrapped in an XML tag `<file path="..." lines=X chars=Y>...</file>` with no indentation.
-Note: headings within code blocks are not indexed.
+## Dev
 
-### Details
-
-- Parse with remark-parse + remark-gfm + remark-frontmatter; preserve frontmatter via remark-stringify, not string slicing. Traverse the AST with unist-util-visit; skip headings inside fenced code blocks.
-- Match headings by exact text (e.g. `## Introduction`), not slug.
-- Resolve relative paths against the markdown file's directory; use sharp for raster, resvg for SVG. Detect MIME with file-type first, fall back to mime-types by extension.
-
-## MCP install spec
-
-The MCP should be executed via `npx` like most stdio MCP servers. Optional arguments can restrict the allowed paths or domains which the tools can access. If no restrictions are specified, the Roots MCP feature can be used, if the client supports it.
-
+```bash
+npm test
+npm run build
+npx @modelcontextprotocol/inspector node dist/server.js --allow-path . --allow-domain none
+```

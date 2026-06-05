@@ -48,44 +48,4 @@ main().catch((err) => {
 
 ## Security
 
-Allow the client to restrict the paths and domains which the tools can access. Agents with unrestricted access to sensitive files and exfiltration capability are a security risk.
-
-### Roots — query workspace boundaries (client-dependent)
-
-Instead of hardcoding a root directory, ask the host which directories the user approved.
-
-```typescript
-// Pseudo-code. Check latest SDK docs for exact API.
-const caps = server.getClientCapabilities();
-if (caps?.roots) {
-  const { roots } = await server.server.listRoots();
-  // roots: [{ uri: "file:///home/user/project", name: "My Project" }]
-}
-```
-
----
-
-## Development workflow
-
-1. Implement, build and test according to repo instructions.
-2. Manual smoke test: MCP Inspector (stdio):
-
-```bash
-npm run build
-npx @modelcontextprotocol/inspector node dist/server.js
-```
-
-3. **Host config example** (Cursor — `~/.cursor/mcp.json` or project `.cursor/mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "md-vision": {
-      "command": "node",
-      "args": ["/absolute/path/to/md-vision-mcp/dist/server.js"]
-    }
-  }
-}
-```
-
-Use absolute paths. After config changes, restart the host.
+Restrict paths and domains via CLI flags. Block filesystem and network access by default if no flags are provided. MCP Roots is deprecated in the next MCP standard — do not use it here.

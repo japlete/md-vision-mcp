@@ -1,22 +1,157 @@
 # md-vision MCP server
 
-stdio MCP server with two tools:
-- Read markdown files with images in a single call. Can be scoped to a particular section or line range.
-- Build an index of headings and subheadings for a given MD file or folder
+stdio MCP server with two read-only tools for agentic RAG over markdown documentation:
 
-Both tools combined allow efficient agentic RAG given a set of MD files.
+- **read_md_with_images** — return markdown (optionally scoped) with referenced images as MCP image blocks.
+- **index_md** — build a compact heading index for a file, URL, or folder of markdown files.
+
+Typical flow: call `index_md` to discover headings and structure, then `read_md_with_images` on the sections you need.
+
+## Requirements
+
+- Node.js 20+
 
 ## Install
 
-Include example after implementing.
+From a clone of this repo:
+
+```bash
+npm install
+npm run build
+```
+
+After publish, the server can be run via `npx md-vision` (package name: `md-vision`).
+
+## MCP client configuration (only local build for now)
+
+In your agent config (`.agents/mcp.json` or similar), point your MCP host at the built server. Use absolute paths. Example:
+
+```json
+{
+  "mcpServers": {
+    "md-vision": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/md-vision-mcp/dist/server.js",
+        "--allow-path",
+        "/absolute/path/to/docs",
+        "--allow-domain",
+        "none"
+      ]
+    }
+  }
+}
+```
+
+**With remote markdown** (allow all HTTP(S) hosts, or list specific domains):
+
+```json
+{
+  "mcpServers": {
+    "md-vision": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/md-vision-mcp/dist/server.js",
+        "--allow-path",
+        "/absolute/path/to/docs",
+        "--allow-domain",
+        "all"
+      ]
+    }
+  }
+}
+```
+
+```json
+{
+  "mcpServers": {
+    "md-vision": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/md-vision-mcp/dist/server.js",
+        "--allow-path",
+        "/absolute/path/to/docs",
+        "--allow-domain",
+        "raw.githubusercontent.com"
+      ]
+    }
+  }
+}
+```
+
+The server exits on startup if `--allow-path` or `--allow-domain` is omitted.
+
+Restart the MCP host after changing configuration.
 
 ### Restricting allowed paths and domains
 
-Include example after implementing.
+| Flag | Required | Effect |
+|------|----------|--------|
+| `--allow-path <dir>` | Yes (at least one) | Local files must resolve under one of the allowed directories (repeatable). |
+| `--allow-domain <host>` | Yes (at least one) | Controls HTTP(S) access. Use `all` to allow any host, `none` to disable URLs (local files only), or list specific hosts (repeatable; suffix match supported, e.g. `example.com` allows `docs.example.com`). |
 
-### Note on deploying agents with this MCP server
+Equivalent forms: `--allow-path=/path`, `--allow-domain=host.example`, `--allow-domain=all`, `--allow-domain=none`.
 
-If your plan is to deploy an agent in a container/sandbox, consider that stdio MCP servers run as subprocesses of the agent runtime that invokes them. If you follow the agent-in-sandbox pattern (agent runtime is the same filesystem as the agent's sandbox environment), the stdio MCP will work, but you should restrict allowed paths to hide the orchestrator / runtime files. If you follow the sandbox-as-tool pattern (agent runtime is a different filesystem than the sandbox container), the stdio MCP for most frameworks will run in the agent runtime. You will need to maintain a copy/sync of the MD files for the tools to find them.
+Do not pass a bare `*` as a separate shell argument — the shell expands it to filenames in the current directory. Use `all` or `--allow-domain=all` instead.
+
+## Development
+
+```bash
+npm run dev          # rebuild on change
+npm test             # vitest
+npm run build        # dist/server.js
+npm start            # run built server (stdio)
+
+# Interactive smoke test
+npx @modelcontextprotocol/inspector node dist/server.js --allow-path . --allow-domain none
+```
+
+## Tools
+
+### read_md_with_images
+
+Read a markdown file and inline referenced images as MCP image content.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uri` | string | Local path, `file://` URI, or `http(s)://` URL |
+| `section` | string, optional | Exact heading to read, e.g. `## Introduction` (takes precedence over `line_range` when matched) |
+| `line_range` | `[start, end]`, optional | Inclusive 1-based line range |
+| `max_images` | integer, optional | Max images to inline (default `10`, max `50`) |
+
+**Returns:** MCP content array — alternating `text` and `image` blocks (PNG, base64) in document order; frontmatter preserved in the leading text. Before each inlined image, a short `text` block carries the resolved image URL (omitted for `data:` URIs and other long references). Images beyond `max_images` stay as markdown image syntax in text.
+
+**URI forms:** local paths, `file://`, and `http(s)://`. Relative image paths resolve against the markdown file location or document URL. Images may use markdown `![](...)` syntax or HTML `<img src="...">` tags.
+
+### index_md
+
+Index headings for navigation before targeted reads.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `uri` | string | Markdown file, `http(s)://` URL, or local folder |
+
+**Returns:** Markdown string. For each file:
+
+1. YAML frontmatter when present.
+2. A fenced `tsv` code block with columns: `heading`, `line_start`, `n_images`, `char_count`.
+
+Each file is wrapped in:
+
+```xml
+<file path="..." lines=X chars=Y>
+...
+</file>
+```
+
+Folder `uri` values are scanned recursively for `*.md` / `*.markdown` in stable sorted order. Headings inside fenced code blocks are not indexed.
+
+## Note on deploying agents with this MCP server
+
+stdio MCP servers run as subprocesses of the agent runtime that invokes them.
+
+- **Agent-in-sandbox** (runtime shares the agent’s filesystem): the server can read docs in-place; scope `--allow-path` to the documentation tree you intend to expose.
+- **Sandbox-as-tool** (runtime filesystem differs from the tool sandbox): the MCP process usually runs in the runtime environment, so markdown must be copied or synced where the server can read it.
 
 ## Benchmark
 
