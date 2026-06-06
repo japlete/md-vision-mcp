@@ -64,8 +64,15 @@ title: Demo
     expect(rows.some((row) => row.heading === "## Not indexed")).toBe(false);
   });
 
-  it("returns a useful error for missing exact sections", () => {
+  it("returns a useful error for missing exact sections without line_range", () => {
     expect(() => selectMarkdown(document, { section: "Details" })).toThrow("Section not found");
+  });
+
+  it("falls back to line_range when section is not found", () => {
+    const selected = selectMarkdown(document, { section: "## Missing", lineRange: [5, 7] });
+
+    expect(selected.text).toContain("# Intro");
+    expect(collectImages(selected.root)).toHaveLength(1);
   });
 
   it("parses markdown with GFM constructs", () => {

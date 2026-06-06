@@ -33,7 +33,7 @@ Node 20+, TypeScript, ESM (tsup). MCP SDK + zod. unified/remark (GFM, frontmatte
 
 ## Tools (contract)
 
-**read_md_with_images** — `uri`, optional `section` (exact heading text, e.g. `## Intro`), optional `line_range` `[start, end]` (section wins when matched), optional `max_images` (default 10, max 50). Returns text + image blocks; frontmatter preserved via remark-stringify.
+**read_md_with_images** — `uri` (local path or URL), optional `section` (exact heading text, e.g. `## Intro`), optional `line_range` `[start, end]` (section when matched, else `line_range`), optional `max_images` (default 10, max 50). Returns text + image blocks; frontmatter preserved via remark-stringify.
 
 **index_md** — `uri` (file, folder, or URL). Per file: frontmatter + TSV (`heading`, `line_start`, `n_images`, `char_count`) in `<file path="..." lines=X chars=Y>`. Headings inside fenced code are skipped (AST, not regex).
 

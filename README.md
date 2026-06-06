@@ -114,14 +114,14 @@ Read a markdown file and inline referenced images as MCP image content.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `uri` | string | Local path, `file://` URI, or `http(s)://` URL |
-| `section` | string, optional | Exact heading to read, e.g. `## Introduction` (takes precedence over `line_range` when matched) |
-| `line_range` | `[start, end]`, optional | Inclusive 1-based line range |
+| `uri` | string | Local path or `http(s)://` URL |
+| `section` | string, optional | Exact heading to read, e.g. `## Introduction` (used when matched; otherwise falls back to `line_range`) |
+| `line_range` | `[start, end]`, optional | Inclusive 1-based document line range (used when `section` is omitted or not found) |
 | `max_images` | integer, optional | Max images to inline (default `10`, max `50`) |
 
 **Returns:** MCP content array — alternating `text` and `image` blocks (PNG, base64) in document order; frontmatter preserved in the leading text. Before each inlined image, a short `text` block carries the resolved image URL (omitted for `data:` URIs and other long references). Images beyond `max_images` stay as markdown image syntax in text.
 
-**URI forms:** local paths, `file://`, and `http(s)://`. Relative image paths resolve against the markdown file location or document URL. Images may use markdown `![](...)` syntax or HTML `<img src="...">` tags.
+**URI forms:** local filesystem paths and `http(s)://` URLs. Local paths must fall under a configured `--allow-path` directory. Relative image paths resolve against the markdown file location or document URL. Images may use markdown `![](...)` syntax or HTML `<img src="...">` tags.
 
 ### index_md
 

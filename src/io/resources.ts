@@ -1,6 +1,6 @@
 import { stat, readFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL, fileURLToPath } from "node:url";
 import fastGlob from "fast-glob";
 
 import { assertDomainAllowed, assertPathAllowed, type RuntimeContext } from "./access.js";
@@ -35,7 +35,7 @@ export async function readMarkdownResource(uri: string, runtime: RuntimeContext)
     };
   }
 
-  const filePath = toLocalPath(uri);
+  const filePath = parseUserLocalUri(uri);
   await assertPathAllowed(filePath, runtime);
   const fileStats = await stat(filePath);
   if (!fileStats.isFile()) {
@@ -55,7 +55,7 @@ export async function listMarkdownResources(uri: string, runtime: RuntimeContext
     return [await readMarkdownResource(uri, runtime)];
   }
 
-  const filePath = toLocalPath(uri);
+  const filePath = parseUserLocalUri(uri);
   await assertPathAllowed(filePath, runtime);
   const fileStats = await stat(filePath);
   if (fileStats.isFile()) {
@@ -101,6 +101,13 @@ export function resolveReference(reference: string, baseUri: string): string {
     return reference;
   }
   return new URL(reference, baseUri).href;
+}
+
+export function parseUserLocalUri(uri: string): string {
+  if (uri.startsWith("file://")) {
+    throw new Error("file:// URIs are not supported. Pass a local filesystem path instead.");
+  }
+  return path.resolve(uri);
 }
 
 export function toLocalPath(uri: string): string {

@@ -16,16 +16,20 @@ import {
 import { contentResult, errorResult, imageBlock, textBlock, type ToolContent } from "../mcp/result.js";
 
 export const readMdWithImagesInputSchema = {
-  uri: z.string().min(1).describe("Local path, file:// URI, or HTTP(S) URL of the markdown file to read."),
+  uri: z.string().min(1).describe("Local path or HTTP(S) URL of the markdown file to read."),
   section: z
     .string()
     .min(1)
     .optional()
-    .describe("Exact heading to read, including marker, for example '## Introduction'. Takes precedence over line_range."),
+    .describe(
+      "Exact heading to read, including marker, for example '## Introduction'. When matched, takes precedence over line_range.",
+    ),
   line_range: z
     .tuple([z.number().int().min(1), z.number().int().min(1)])
     .optional()
-    .describe("Inclusive 1-based line range to read when section is not provided, for example [1, 10]."),
+    .describe(
+      "Inclusive 1-based document line range, for example [1, 10]. Used when section is omitted or not found.",
+    ),
   max_images: z
     .number()
     .int()

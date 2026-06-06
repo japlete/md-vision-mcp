@@ -8,7 +8,7 @@ import { buildHeadingIndex, countLines, stringifyFrontmatter, type HeadingIndexR
 import { errorResult, textResult } from "../mcp/result.js";
 
 export const indexMdInputSchema = {
-  uri: z.string().min(1).describe("Local path, file:// URI, HTTP(S) URL, or local folder to index for markdown headings."),
+  uri: z.string().min(1).describe("Local path, HTTP(S) URL, or local folder to index for markdown headings."),
 };
 
 const inputParser = z.object(indexMdInputSchema);

@@ -64,31 +64,22 @@ export function selectMarkdown(
   const totalLines = countLines(text);
 
   if (options.section) {
-    const range = findSectionRange(root, options.section, totalLines);
-    const sectionRoot = rootFromChildren(childrenWithinRange(root.children, range));
-    return {
-      root: sectionRoot,
-      text: stringifyMarkdown(sectionRoot),
-      range,
-    };
+    const range = tryFindSectionRange(root, options.section, totalLines);
+    if (range) {
+      const sectionRoot = rootFromChildren(childrenWithinRange(root.children, range));
+      return {
+        root: sectionRoot,
+        text: stringifyMarkdown(sectionRoot),
+        range,
+      };
+    }
+    if (!options.lineRange) {
+      throw new Error(`Section not found: ${options.section}. Use index_md to inspect available headings.`);
+    }
   }
 
   if (options.lineRange) {
-    const [start, end] = options.lineRange;
-    if (start > end) {
-      throw new Error(`line_range start must be <= end. Received [${start}, ${end}].`);
-    }
-    if (end > totalLines) {
-      throw new Error(`line_range end ${end} exceeds document length ${totalLines}.`);
-    }
-
-    const selectedText = sliceLines(text, { start, end });
-    const selectedRoot = parseMarkdown(selectedText);
-    return {
-      root: selectedRoot,
-      text: stringifyMarkdown(selectedRoot),
-      range: { start, end },
-    };
+    return selectByLineRange(text, options.lineRange, totalLines);
   }
 
   return {
@@ -172,12 +163,34 @@ export function countLines(text: string): number {
   return text.length === 0 ? 0 : text.split(/\r\n|\r|\n/).length;
 }
 
-function findSectionRange(root: Root, section: string, totalLines: number): LineRange {
+function tryFindSectionRange(root: Root, section: string, totalLines: number): LineRange | null {
   const heading = root.children.find((child) => isHeading(child) && formatHeading(child) === section);
   if (!heading) {
-    throw new Error(`Section not found: ${section}. Use index_md to inspect available headings.`);
+    return null;
   }
   return sectionRangeForHeading(root, heading, totalLines);
+}
+
+function selectByLineRange(
+  text: string,
+  lineRange: readonly [number, number],
+  totalLines: number,
+): SelectedMarkdown {
+  const [start, end] = lineRange;
+  if (start > end) {
+    throw new Error(`line_range start must be <= end. Received [${start}, ${end}].`);
+  }
+  if (end > totalLines) {
+    throw new Error(`line_range end ${end} exceeds document length ${totalLines}.`);
+  }
+
+  const selectedText = sliceLines(text, { start, end });
+  const selectedRoot = parseMarkdown(selectedText);
+  return {
+    root: selectedRoot,
+    text: stringifyMarkdown(selectedRoot),
+    range: { start, end },
+  };
 }
 
 function sectionRangeForHeading(root: Root, heading: Heading, totalLines: number): LineRange {

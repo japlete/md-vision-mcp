@@ -22,7 +22,7 @@ export function createServer(args: string[] = process.argv.slice(2)): McpServer 
     {
       title: "Read markdown with images",
       description:
-        "Read a markdown file or selected section/range and return the markdown plus referenced images as MCP image blocks. Use index_md first to discover headings.",
+        "Read a markdown file or selected section/range and return the markdown with interleaved image blocks. Use section for an exact heading; if it is missing, line_range is used when provided. Optionally use index_md first to discover headings.",
       inputSchema: readMdWithImagesInputSchema,
       annotations: {
         readOnlyHint: true,
@@ -39,7 +39,7 @@ export function createServer(args: string[] = process.argv.slice(2)): McpServer 
     {
       title: "Index markdown headings",
       description:
-        "Index headings in a markdown file, URL, or local folder. Returns frontmatter and TSV heading rows; use read_md_with_images to read specific content.",
+        "Index headings in a markdown file, URL, or local folder. Returns frontmatter (if any) and a TSV table of headings, line_start, n_images, char_count; use read_md_with_images to read specific content.",
       inputSchema: indexMdInputSchema,
       annotations: {
         readOnlyHint: true,

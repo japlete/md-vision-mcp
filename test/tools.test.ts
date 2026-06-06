@@ -121,7 +121,7 @@ describe("tool handlers", () => {
     }
   });
 
-  it("returns MCP tool errors for missing sections", async () => {
+  it("returns MCP tool errors for missing sections without line_range", async () => {
     const temp = await dir({ unsafeCleanup: true });
     try {
       const markdownPath = path.join(temp.path, "doc.md");
@@ -138,6 +138,34 @@ describe("tool handlers", () => {
     } finally {
       await temp.cleanup();
     }
+  });
+
+  it("falls back to line_range when section is not found", async () => {
+    const temp = await dir({ unsafeCleanup: true });
+    try {
+      const markdownPath = path.join(temp.path, "doc.md");
+      await writeFile(markdownPath, "# Present\n\nBody.\n");
+
+      const result = await readMdWithImages(
+        { uri: markdownPath, section: "## Missing", line_range: [1, 1] },
+        runtime({ allowPaths: [temp.path], allowDomains: ["none"] }),
+      );
+
+      expect(result.isError).not.toBe(true);
+      expect(result.content[0]).toMatchObject({ type: "text" });
+      expect(result.content[0]?.type === "text" ? result.content[0].text : "").toContain("# Present");
+    } finally {
+      await temp.cleanup();
+    }
+  });
+
+  it("rejects file:// URIs", async () => {
+    await expect(
+      readMarkdownResource(
+        "file:///tmp/doc.md",
+        runtime({ allowPaths: [process.cwd()], allowDomains: ["none"] }),
+      ),
+    ).rejects.toThrow("file:// URIs are not supported");
   });
 
   it("indexes a local folder in stable order with frontmatter and TSV rows", async () => {
@@ -272,7 +300,7 @@ describe("tool handlers", () => {
 
     const loaded = await loadMarkdownImage(
       image,
-      "file:///tmp/doc.md",
+      "/tmp/doc.md",
       runtime({ allowPaths: [process.cwd()], allowDomains: ["none"] }),
     );
 
