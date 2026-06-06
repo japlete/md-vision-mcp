@@ -11,7 +11,20 @@
     "markdown"
   ],
   "license": "MIT",
-  "author": "",
+  "author": "José Poblete",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/japlete/md-vision-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/japlete/md-vision-mcp/issues"
+  },
+  "homepage": "https://github.com/japlete/md-vision-mcp#readme",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "main": "./dist/server.js",
   "bin": {
@@ -24,6 +37,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "start": "node dist/server.js",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Assert publish tarball contents
+        run: |
+          npm pack --dry-run 2>&1 | tee pack.log
+          grep -q 'dist/server.js' pack.log
+          ! grep -qE '\.agents/|/src/|/test/' pack.log

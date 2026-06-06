@@ -1,6 +1,11 @@
+import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { pathToFileURL } from "node:url";
+
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json") as { version: string };
 
 import { createRuntimeContext, parseAccessArgs, requireAllowDomains, requireAllowPaths } from "./io/access.js";
 import { indexMd, indexMdInputSchema } from "./tools/index-md.js";
@@ -13,7 +18,7 @@ export function createServer(args: string[] = process.argv.slice(2)): McpServer 
 
   const server = new McpServer({
     name: "md-vision",
-    version: "0.1.0",
+    version,
   });
   const runtime = createRuntimeContext(access);
 

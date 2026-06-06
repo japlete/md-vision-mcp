@@ -13,6 +13,19 @@ Typical flow: call `index_md` to discover headings and structure, then `read_md_
 
 ## Install
 
+Published package: [md-vision on npm](https://www.npmjs.com/package/md-vision)
+
+```bash
+npx md-vision --allow-path /path/to/docs --allow-domain none
+```
+
+Or install globally:
+
+```bash
+npm install -g md-vision
+md-vision --allow-path /path/to/docs --allow-domain none
+```
+
 From a clone of this repo:
 
 ```bash
@@ -20,11 +33,28 @@ npm install
 npm run build
 ```
 
-After publish, the server can be run via `npx md-vision` (package name: `md-vision`).
+## MCP client configuration
 
-## MCP client configuration (only local build for now)
+In your agent config (`.agents/mcp.json` or similar), point your MCP host at the server. Example using `npx`:
 
-In your agent config (`.agents/mcp.json` or similar), point your MCP host at the built server. Use absolute paths. Example:
+```json
+{
+  "mcpServers": {
+    "md-vision": {
+      "command": "npx",
+      "args": [
+        "md-vision",
+        "--allow-path",
+        "/absolute/path/to/docs",
+        "--allow-domain",
+        "none"
+      ]
+    }
+  }
+}
+```
+
+**Local development** (absolute path to built `dist/server.js`):
 
 ```json
 {
@@ -49,9 +79,9 @@ In your agent config (`.agents/mcp.json` or similar), point your MCP host at the
 {
   "mcpServers": {
     "md-vision": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "/absolute/path/to/md-vision-mcp/dist/server.js",
+        "md-vision",
         "--allow-path",
         "/absolute/path/to/docs",
         "--allow-domain",
@@ -66,9 +96,9 @@ In your agent config (`.agents/mcp.json` or similar), point your MCP host at the
 {
   "mcpServers": {
     "md-vision": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "/absolute/path/to/md-vision-mcp/dist/server.js",
+        "md-vision",
         "--allow-path",
         "/absolute/path/to/docs",
         "--allow-domain",
@@ -105,6 +135,24 @@ npm start            # run built server (stdio)
 # Interactive smoke test
 npx @modelcontextprotocol/inspector node dist/server.js --allow-path . --allow-domain none
 ```
+
+## Releasing
+
+Publishes are automated via GitHub Actions when a version tag is pushed.
+
+1. Bump `version` in `package.json` and commit to `master`.
+2. Configure [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) on [npmjs.com](https://www.npmjs.com) (one-time):
+   - Provider: **GitHub Actions**
+   - Repository: `japlete/md-vision-mcp`
+   - Workflow filename: `publish.yml`
+3. Create and push a tag matching the package version:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The [publish workflow](.github/workflows/publish.yml) verifies the tag matches `package.json`, runs tests, builds, and publishes to npm with provenance. CI on every push/PR to `master` is in [ci.yml](.github/workflows/ci.yml).
 
 ## Tools
 
