@@ -141,7 +141,7 @@ npx @modelcontextprotocol/inspector node dist/server.js --allow-path . --allow-d
 Publishes are automated via GitHub Actions when a version tag is pushed.
 
 1. Bump `version` in `package.json` and commit to `master`.
-2. Configure [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) on [npmjs.com](https://www.npmjs.com) (one-time):
+2. Configure [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers) on [npmjs.com](https://www.npmjs.com) (one-time, **before** the first publish):
    - Provider: **GitHub Actions**
    - Repository: `japlete/md-vision-mcp`
    - Workflow filename: `publish.yml`
@@ -153,6 +153,8 @@ git push origin v0.1.0
 ```
 
 The [publish workflow](.github/workflows/publish.yml) verifies the tag matches `package.json`, runs tests, builds, and publishes to npm with provenance. CI on every push/PR to `master` is in [ci.yml](.github/workflows/ci.yml).
+
+If a publish fails because Trusted Publishing was not configured yet, set it up on npmjs.com then re-run the failed workflow from the GitHub Actions UI (or `gh run rerun <run-id> --failed`).
 
 ## Tools
 
