@@ -1,6 +1,6 @@
 {
   "name": "md-vision",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "stdio MCP server to read and index markdown with images",
   "keywords": [
     "context-engineering",
