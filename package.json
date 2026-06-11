@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/japlete/md-vision-mcp#readme",
   "files": [
-    "dist",
+    "dist/server.js",
     "README.md",
     "LICENSE"
   ],
