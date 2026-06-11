@@ -205,4 +205,5 @@ stdio MCP servers run as subprocesses of the agent runtime that invokes them.
 
 ## Benchmark
 
-Not yet implemented.
+See [`benchmark/`](benchmark/) for the MMLongBench-Doc A/B harness comparing
+filesystem-only agentic RAG against the same agent with `md-vision` MCP tools.

@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+
+# Large/generated benchmark artifacts
+data/
+results/
+run_manifest.json
+
+# MinerU cloud conversion scratch output
+mineru-work/

@@ -5,3 +5,8 @@ dist/
 
 # Local MCP testing
 **/mcp.json
+
+# Benchmark-generated artifacts
+benchmark/.venv/
+benchmark/data/
+benchmark/results/

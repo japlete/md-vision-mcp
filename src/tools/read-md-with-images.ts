@@ -25,7 +25,8 @@ export const readMdWithImagesInputSchema = {
       "Exact heading to read, including marker, for example '## Introduction'. When matched, takes precedence over line_range.",
     ),
   line_range: z
-    .tuple([z.number().int().min(1), z.number().int().min(1)])
+    .array(z.number().int().min(1))
+    .length(2)
     .optional()
     .describe(
       "Inclusive 1-based document line range, for example [1, 10]. Used when section is omitted or not found.",

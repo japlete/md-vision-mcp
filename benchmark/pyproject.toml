@@ -1,0 +1,22 @@
+[project]
+name = "md-vision-benchmark"
+version = "0.1.0"
+description = "MMLongBench-Doc benchmark harness for md-vision MCP."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "datasets",
+  "deepagents",
+  "huggingface-hub",
+  "langchain-core",
+  "langchain-mcp-adapters",
+  "langchain-openai",
+  "pydantic>=2",
+  "pypdf",
+  "python-dotenv",
+  "requests",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "14 days"

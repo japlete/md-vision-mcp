@@ -48,5 +48,5 @@ CLI: `--allow-path` and `--allow-domain` (both required, repeatable or `=value`)
 ```bash
 npm test
 npm run build
-npx @modelcontextprotocol/inspector node dist/server.js --allow-path . --allow-domain none
+npx @modelcontextprotocol/inspector node dist/server.js --allow-path . --allow-domain all
 ```

@@ -1,0 +1,42 @@
+[paths]
+data_dir = "data"
+raw_dir = "data/raw"
+documents_dir = "data/raw/documents"
+corpus_dir = "data/corpus"
+results_dir = "results"
+mdvision_server = "../dist/server.js"
+
+[dataset]
+repo_id = "yubo2333/MMLongBench-Doc"
+split = "train"
+revision = "main"
+
+[mineru]
+api_base_url = "https://mineru.net/api/v4"
+model_version = "vlm"
+max_pages = 200
+max_file_size_mb = 200
+poll_interval_seconds = 10
+poll_timeout_seconds = 3600
+work_dir = "data/mineru-work"
+
+[agent]
+model = "google/gemini-3.5-flash"
+provider = "openrouter"
+openrouter_base_url = "https://openrouter.ai/api/v1"
+max_iterations = 100
+reasoning_effort = "minimal"
+service_tier = "flex"
+
+[judge]
+enabled = true
+model = "deepseek/deepseek-v4-flash"
+provider = "openrouter"
+openrouter_base_url = "https://openrouter.ai/api/v1"
+threshold = 1.0
+reasoning_effort = "none"
+
+[tiers]
+smoke = 15
+pilot = 75
+standard = 250

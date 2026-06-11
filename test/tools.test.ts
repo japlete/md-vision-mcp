@@ -3,13 +3,15 @@ import path from "node:path";
 import nock from "nock";
 import { afterEach, describe, expect, it } from "vitest";
 import { dir } from "tmp-promise";
+import { z } from "zod";
+import zodToJsonSchema from "zod-to-json-schema";
 
 import type { RuntimeContext } from "../src/io/access.js";
 import { readMarkdownResource } from "../src/io/resources.js";
 import { loadMarkdownImage } from "../src/images/load.js";
 import type { MarkdownImage } from "../src/markdown/document.js";
 import { indexMd } from "../src/tools/index-md.js";
-import { readMdWithImages } from "../src/tools/read-md-with-images.js";
+import { readMdWithImages, readMdWithImagesInputSchema } from "../src/tools/read-md-with-images.js";
 
 const onePixelPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAghI0GQAAAABJRU5ErkJggg==",
@@ -306,6 +308,19 @@ describe("tool handlers", () => {
 
     expect(loaded.mimeType).toBe("image/png");
     expect(loaded.data.length).toBeGreaterThan(0);
+  });
+});
+
+describe("tool input schemas", () => {
+  it("exports line_range as a fixed-length integer array for provider compatibility", () => {
+    const jsonSchema = zodToJsonSchema(z.object(readMdWithImagesInputSchema)).properties?.line_range;
+    expect(jsonSchema).toMatchObject({
+      type: "array",
+      minItems: 2,
+      maxItems: 2,
+      items: { type: "integer", minimum: 1 },
+    });
+    expect(Array.isArray(jsonSchema?.items)).toBe(false);
   });
 });
 
