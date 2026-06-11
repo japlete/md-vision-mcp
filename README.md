@@ -2,40 +2,16 @@
 
 stdio MCP server with two read-only tools for agentic RAG over markdown documentation:
 
-- **read_md_with_images** — return markdown (optionally scoped) with referenced images as MCP image blocks.
-- **index_md** — build a compact heading index for a file, URL, or folder of markdown files.
+- **read_md_with_images** — return markdown with referenced images as interleaved image blocks. Avoids an extra tool call for each image to read. Optionally scoped to a specific section or line range.
+- **index_md** — return a compact heading index for a file, URL, or folder of markdown files. Used to dynamically index files for targeted reads.
 
 Typical flow: call `index_md` to discover headings and structure, then `read_md_with_images` on the sections you need.
 
-## Requirements
-
-- Node.js 20+
-
-## Install
+## Install: MCP client configuration
 
 Published package: [md-vision on npm](https://www.npmjs.com/package/md-vision)
 
-```bash
-npx md-vision --allow-path /path/to/docs --allow-domain none
-```
-
-Or install globally:
-
-```bash
-npm install -g md-vision
-md-vision --allow-path /path/to/docs --allow-domain none
-```
-
-From a clone of this repo:
-
-```bash
-npm install
-npm run build
-```
-
-## MCP client configuration
-
-In your agent config (`.agents/mcp.json` or similar), point your MCP host at the server. Example using `npx`:
+In your agent config (`.agents/mcp.json` or similar), point your MCP host at the server. Example:
 
 ```json
 {
@@ -44,25 +20,6 @@ In your agent config (`.agents/mcp.json` or similar), point your MCP host at the
       "command": "npx",
       "args": [
         "md-vision",
-        "--allow-path",
-        "/absolute/path/to/docs",
-        "--allow-domain",
-        "none"
-      ]
-    }
-  }
-}
-```
-
-**Local development** (absolute path to built `dist/server.js`):
-
-```json
-{
-  "mcpServers": {
-    "md-vision": {
-      "command": "node",
-      "args": [
-        "/absolute/path/to/md-vision-mcp/dist/server.js",
         "--allow-path",
         "/absolute/path/to/docs",
         "--allow-domain",
@@ -124,17 +81,9 @@ Equivalent forms: `--allow-path=/path`, `--allow-domain=host.example`, `--allow-
 
 Do not pass a bare `*` as a separate shell argument — the shell expands it to filenames in the current directory. Use `all` or `--allow-domain=all` instead.
 
-## Development
+### Requirements
 
-```bash
-npm run dev          # rebuild on change
-npm test             # vitest
-npm run build        # dist/server.js
-npm start            # run built server (stdio)
-
-# Interactive smoke test
-npx @modelcontextprotocol/inspector node dist/server.js --allow-path . --allow-domain none
-```
+- Node.js 20+
 
 ## Tools
 
@@ -178,7 +127,7 @@ Folder `uri` values are scanned recursively for `*.md` / `*.markdown` in stable 
 
 ## Note on deploying agents with this MCP server
 
-stdio MCP servers run as subprocesses of the agent runtime that invokes them.
+stdio MCP servers run as subprocesses of the agent runtime that invokes them. There are two deployment patterns commonly used:
 
 - **Agent-in-sandbox** (runtime shares the agent’s filesystem): the server can read docs in-place; scope `--allow-path` to the documentation tree you intend to expose.
 - **Sandbox-as-tool** (runtime filesystem differs from the tool sandbox): the MCP process usually runs in the runtime environment, so markdown must be copied or synced where the server can read it.
