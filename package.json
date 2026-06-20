@@ -1,6 +1,7 @@
 {
   "name": "md-vision",
-  "version": "0.2.0",
+  "version": "0.2.1",
+  "mcpName": "io.github.japlete/md-vision",
   "description": "stdio MCP server to read and index markdown with images",
   "keywords": [
     "context-engineering",

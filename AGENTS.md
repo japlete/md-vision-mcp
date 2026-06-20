@@ -25,7 +25,6 @@ Node 20+, TypeScript, ESM (tsup). MCP SDK + zod. unified/remark (GFM, frontmatte
 
 ## Rules
 
-- Breaking changes OK while unpublished.
 - Run `npm test` after code changes.
 - Use `.js` extensions in relative imports. No CommonJS.
 - stdio: never log to stdout; use `console.error` only.
