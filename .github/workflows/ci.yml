@@ -8,9 +8,11 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
         node-version: [20, 22]
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +24,7 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Assert publish tarball contents
+        if: runner.os == 'Linux'
         run: |
           npm pack --dry-run 2>&1 | tee pack.log
           grep -q 'dist/server.js' pack.log
