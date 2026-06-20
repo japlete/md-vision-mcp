@@ -1,6 +1,6 @@
 {
   "name": "md-vision",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "stdio MCP server to read and index markdown with images",
   "keywords": [
     "context-engineering",
@@ -22,11 +22,21 @@
   "homepage": "https://github.com/japlete/md-vision-mcp#readme",
   "files": [
     "dist/server.js",
+    "dist/index.js",
+    "dist/index.d.ts",
     "README.md",
     "LICENSE"
   ],
   "type": "module",
-  "main": "./dist/server.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "bin": {
     "md-vision": "./dist/server.js"
   },

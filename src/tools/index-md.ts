@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getErrorMessage } from "../errors.js";
 import type { RuntimeContext } from "../io/access.js";
 import { listMarkdownResources, type LoadedMarkdown } from "../io/resources.js";
-import { buildHeadingIndex, countLines, stringifyFrontmatter, type HeadingIndexRow } from "../markdown/document.js";
+import { indexMarkdownText, type HeadingIndexRow } from "../indexing.js";
 import { errorResult, textResult } from "../mcp/result.js";
 
 export const indexMdInputSchema = {
@@ -30,12 +30,11 @@ export async function indexMd(input: IndexMdInput, runtime: RuntimeContext): Pro
 }
 
 function formatIndexedFile(markdown: LoadedMarkdown): string {
-  const rows = buildHeadingIndex(markdown.text);
-  const frontmatter = stringifyFrontmatter(markdown.text).trimEnd();
-  const tsv = formatTsv(rows);
-  const body = [frontmatter, "```tsv", tsv, "```"].filter((part) => part.length > 0).join("\n");
+  const index = indexMarkdownText(markdown.text, { path: markdown.displayPath });
+  const tsv = formatTsv(index.rows);
+  const body = [index.frontmatter, "```tsv", tsv, "```"].filter((part) => part.length > 0).join("\n");
 
-  return `<file path="${escapeXmlAttribute(markdown.displayPath)}" lines=${countLines(markdown.text)} chars=${markdown.text.length}>\n${body}\n</file>`;
+  return `<file path="${escapeXmlAttribute(markdown.displayPath)}" lines=${index.lineCount} chars=${index.charCount}>\n${body}\n</file>`;
 }
 
 function formatTsv(rows: HeadingIndexRow[]): string {

@@ -136,3 +136,106 @@ stdio MCP servers run as subprocesses of the agent runtime that invokes them. Th
 
 See [`benchmark/`](benchmark/) for the MMLongBench-Doc A/B harness comparing
 filesystem-only agentic RAG against the same agent with `md-vision` MCP tools.
+
+## Standalone indexing
+
+`md-vision` can also be used as a library when you want to index markdown outside an MCP host — for example in an offline preprocessing pipeline for agentic RAG.
+
+Install the package:
+
+```bash
+npm install md-vision
+```
+
+### Index markdown text
+
+Use `indexMarkdownText` when you already have markdown content in memory.
+
+```ts
+import { indexMarkdownText } from "md-vision";
+
+const markdown = `# Guide
+
+Intro text.
+
+## Setup
+
+![diagram](./setup.png)
+`;
+
+const index = indexMarkdownText(markdown);
+
+console.log(index.rows);
+```
+
+Example result:
+
+```ts
+[
+  {
+    heading: "# Guide",
+    lineStart: 1,
+    imageCount: 1,
+    charCount: 42
+  },
+  {
+    heading: "## Setup",
+    lineStart: 5,
+    imageCount: 1,
+    charCount: 24
+  }
+]
+```
+
+### Index a file
+
+Use `indexMarkdownFile` to load and index a local markdown file.
+
+```ts
+import { indexMarkdownFile } from "md-vision";
+
+const index = await indexMarkdownFile("./docs/guide.md");
+
+await saveToVectorStoreMetadata({
+  path: index.path,
+  frontmatter: index.frontmatter,
+  headings: index.rows,
+});
+```
+
+### Index a folder
+
+Use `indexMarkdownFolder` to recursively index `*.md` and `*.markdown` files in stable sorted order.
+
+```ts
+import { indexMarkdownFolder } from "md-vision";
+
+const files = await indexMarkdownFolder("./docs");
+
+for (const file of files) {
+  console.log(file.path, file.rows);
+}
+```
+
+### Output shape
+
+Each indexed file returns structured data:
+
+```ts
+type MarkdownFileIndex = {
+  path?: string;
+  frontmatter: string;
+  lineCount: number;
+  charCount: number;
+  rows: HeadingIndexRow[];
+};
+
+type HeadingIndexRow = {
+  heading: string;
+  lineStart: number;
+  imageCount: number;
+  charCount: number;
+};
+```
+
+Headings inside fenced code blocks are ignored because indexing uses the markdown AST rather than regex matching.

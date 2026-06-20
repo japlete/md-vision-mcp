@@ -164,7 +164,7 @@ export function countLines(text: string): number {
 }
 
 function tryFindSectionRange(root: Root, section: string, totalLines: number): LineRange | null {
-  const heading = root.children.find((child) => isHeading(child) && formatHeading(child) === section);
+  const heading = root.children.find((child): child is Heading => isHeading(child) && formatHeading(child) === section);
   if (!heading) {
     return null;
   }
@@ -450,7 +450,7 @@ function splitParentNode<T extends Content & { children: Content[] }>(node: T): 
 
   const flush = () => {
     if (buffer.length > 0) {
-      segments.push({ kind: "text", root: rootFromChildren([{ ...node, children: buffer }]) });
+      segments.push({ kind: "text", root: rootFromChildren([{ ...node, children: buffer } as Content]) });
       buffer = [];
     }
   };
@@ -465,7 +465,7 @@ function splitParentNode<T extends Content & { children: Content[] }>(node: T): 
     if (child.type === "html" && htmlContainsImg(child.value)) {
       flush();
       pushHtmlImageSegments(segments, child.value, (value) =>
-        rootFromChildren([{ ...node, children: [htmlNode(value)] }]),
+        rootFromChildren([{ ...node, children: [htmlNode(value)] } as Content]),
       );
       continue;
     }
