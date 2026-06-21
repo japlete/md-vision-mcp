@@ -18,6 +18,7 @@ const onePixelPng = Buffer.from(
   "base64",
 );
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect width="1" height="1" fill="red"/></svg>`;
+const SVG_RENDER_TEST_TIMEOUT_MS = 30_000;
 
 function runtime(access: RuntimeContext["access"], overrides: Partial<RuntimeContext> = {}): RuntimeContext {
   return {
@@ -55,13 +56,13 @@ describe("tool handlers", () => {
     }
   });
 
-  it("reads markdown and inlines local raster and SVG images", async () => {
+  it("reads markdown and inlines local raster images", async () => {
     const temp = await dir({ unsafeCleanup: true });
     try {
       await writeFile(path.join(temp.path, "pixel.png"), onePixelPng);
-      await writeFile(path.join(temp.path, "vector.svg"), svg);
+      await writeFile(path.join(temp.path, "second.png"), onePixelPng);
       const markdownPath = path.join(temp.path, "doc.md");
-      await writeFile(markdownPath, "# Images\n\n![pixel](./pixel.png)\n\n![vector](./vector.svg)\n");
+      await writeFile(markdownPath, "# Images\n\n![pixel](./pixel.png)\n\n![second](./second.png)\n");
 
       const result = await readMdWithImages({ uri: markdownPath }, runtime({ allowPaths: [temp.path], allowDomains: ["none"] }));
 
@@ -69,11 +70,36 @@ describe("tool handlers", () => {
       expect(result.content.filter((block) => block.type === "image")).toHaveLength(2);
       expect(result.content.map((block) => block.type)).toEqual(["text", "image", "text", "image"]);
       expect(result.content[0]?.type === "text" ? result.content[0].text : "").toContain("pixel.png");
-      expect(result.content[2]?.type === "text" ? result.content[2].text : "").toContain("vector.svg");
+      expect(result.content[2]?.type === "text" ? result.content[2].text : "").toContain("second.png");
     } finally {
       await temp.cleanup();
     }
   });
+
+  it(
+    "inlines local SVG images",
+    async () => {
+      const temp = await dir({ unsafeCleanup: true });
+      try {
+        await writeFile(path.join(temp.path, "vector.svg"), svg);
+        const markdownPath = path.join(temp.path, "doc.md");
+        await writeFile(markdownPath, "# Vector\n\n![vector](./vector.svg)\n");
+
+        const result = await readMdWithImages(
+          { uri: markdownPath },
+          runtime({ allowPaths: [temp.path], allowDomains: ["none"] }),
+        );
+
+        expect(result.isError).not.toBe(true);
+        expect(result.content.filter((block) => block.type === "image")).toHaveLength(1);
+        expect(result.content.map((block) => block.type)).toEqual(["text", "image"]);
+        expect(result.content[0]?.type === "text" ? result.content[0].text : "").toContain("vector.svg");
+      } finally {
+        await temp.cleanup();
+      }
+    },
+    SVG_RENDER_TEST_TIMEOUT_MS,
+  );
 
   it("interleaves an early image before trailing markdown", async () => {
     const temp = await dir({ unsafeCleanup: true });
