@@ -36,11 +36,11 @@ describe("tool handlers", () => {
   it("inlines images referenced with html img tags", async () => {
     const temp = await dir({ unsafeCleanup: true });
     try {
-      await writeFile(path.join(temp.path, "diagram.svg"), svg);
+      await writeFile(path.join(temp.path, "diagram.png"), onePixelPng);
       const markdownPath = path.join(temp.path, "doc.md");
       await writeFile(
         markdownPath,
-        '# HTML image\n\n<img src="./diagram.svg" alt="diagram" width="400"/>\n\nDone.\n',
+        '# HTML image\n\n<img src="./diagram.png" alt="diagram" width="400"/>\n\nDone.\n',
       );
 
       const result = await readMdWithImages({ uri: markdownPath }, runtime({ allowPaths: [temp.path], allowDomains: ["none"] }));
